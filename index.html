@@ -105,6 +105,8 @@ button{cursor:pointer}
 .ok{color:var(--accent)}.er{color:var(--danger);font:12px Manrope,sans-serif}
 .display-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px}
 .ans{color:var(--muted);font:10px 'DM Mono',monospace}
+.reset-ans{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:7px;padding:5px 8px;font:9px 'DM Mono',monospace;cursor:pointer;transition:.2s}
+.reset-ans:hover{color:var(--accent);border-color:rgba(166,243,107,.4)}
 .ans span{color:#cbd3e2}
 .keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
 .keypad button{
@@ -192,7 +194,7 @@ select:focus,input.n:focus{border-color:rgba(166,243,107,.55)}
         <div class="display-label">Expression</div>
         <input id="in" inputmode="none" placeholder="0" autocomplete="off" aria-label="Ekspresi matematika">
         <div id="res"></div>
-        <div class="display-foot"><div class="ans">ANS <span id="ansv">0.00</span></div><div class="ans">DECIMAL · 2</div></div>
+        <div class="display-foot"><div class="ans">ANS <span id="ansv">0.00</span></div><button class="reset-ans" id="resetAnsBtn" type="button">RESET ANS ↺</button></div>
       </div>
       <div class="keypad" id="pad"></div>
     </section>
@@ -241,12 +243,13 @@ select:focus,input.n:focus{border-color:rgba(166,243,107,.55)}
 
 <script>
 var $ = function(id){return document.getElementById(id)};
-var history_ = [], hitung, konversi, getAns, satNama;
+var history_ = [], hitung, konversi, getAns, resetAns, satNama;
 var Module = {
   onRuntimeInitialized: function(){
     hitung = Module.cwrap('hitung','string',['string']);
     konversi = Module.cwrap('konversi','string',['number','number','number','number','number']);
     getAns = Module.cwrap('get_ans','number',[]);
+    resetAns = Module.cwrap('reset_ans',null,[]);
     satNama = Module.cwrap('satuan_nama','string',['number','number']);
     isiSatuan();
   }
@@ -296,6 +299,12 @@ keys.forEach(function(k){
   $('pad').appendChild(b);
 });
 $('in').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();hit()}});
+$('resetAnsBtn').onclick=function(){
+  if(!resetAns){$('res').innerHTML='<span class="er">Modul C++ belum memuat fungsi reset Ans.</span>';return}
+  resetAns();
+  $('ansv').textContent='0.00';
+  if(window.gsap)gsap.fromTo('#ansv',{opacity:.3,y:3},{opacity:1,y:0,duration:.25});
+};
 function ready(){
   if(!hitung){$('res').innerHTML='<span class="er">Modul C++ (calc.js) belum dimuat.</span>';return false}
   return true;
@@ -355,4 +364,4 @@ if(window.gsap){
 }
 </script>
 </body>
-</html>
+</html
