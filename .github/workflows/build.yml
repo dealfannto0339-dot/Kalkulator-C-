@@ -1,0 +1,39 @@
+name: Build dan Deploy Kalkulator
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+      - name: Compile C++ ke WebAssembly
+        run: |
+          mkdir site
+          em++ calc.cpp -Os -fexceptions -o site/calc.js \
+            -sEXPORTED_FUNCTIONS=_hitung,_konversi,_get_ans,_satuan_nama \
+            -sEXPORTED_RUNTIME_METHODS=cwrap \
+            -sSINGLE_FILE=1
+          cp index.html site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
