@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator XI-D</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--tx:#1b2330;--mut:#6b7686;--ac:#1a73e8;--key:#e8edf5;--op:#d6e4fc;--ok:#188038;--er:#d93025}
+@media(prefers-color-scheme:dark){:root{--bg:#10151d;--card:#1a212c;--tx:#e8edf5;--mut:#8b97a8;--ac:#6ea8fe;--key:#262f3d;--op:#2b3f63;--ok:#81c995;--er:#f28b82}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:420px;padding:12px}
+h1{font-size:18px;margin:6px 0 2px;text-align:center}
+.sub{font-size:12px;color:var(--mut);text-align:center;margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;padding:10px 4px;border:0;border-radius:10px;background:var(--card);color:var(--mut);font-size:14px}
+.tabs button.on{background:var(--ac);color:#fff}
+.card{background:var(--card);border-radius:14px;padding:14px}
+.pane{display:none}.pane.on{display:block}
+#in{width:100%;font-size:24px;padding:10px;border:0;border-bottom:2px solid var(--ac);background:transparent;color:var(--tx);text-align:right;outline:0}
+#res{min-height:28px;text-align:right;font-size:20px;margin:8px 0}
+.ok{color:var(--ok)}.er{color:var(--er);font-size:14px!important}
+.ans{font-size:12px;color:var(--mut);text-align:right}
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.pad button{padding:16px 0;font-size:20px;border:0;border-radius:12px;background:var(--key);color:var(--tx)}
+.pad .op{background:var(--op)}.pad .eq{background:var(--ac);color:#fff}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+select,input.n{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--key);background:var(--bg);color:var(--tx)}
+.btn{width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#fff;font-size:16px}
+.btn.g{background:var(--key);color:var(--tx);margin-top:8px}
+ol{padding-left:22px;margin:0}li{padding:6px 0;border-bottom:1px solid var(--key);word-break:break-all}
+.empty{color:var(--mut);font-size:14px}
+.mem{font-size:11px;color:var(--mut);text-align:center;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>K A L K U L A T O R</h1>
+  <div class="sub">Kelas XI-D</div>
+
+  <div class="tabs">
+    <button class="on" data-t="kal">Kalkulator</button>
+    <button data-t="kon">Konversi</button>
+    <button data-t="rwy">Riwayat</button>
+  </div>
+
+  <div class="pane on card" id="kal">
+    <input id="in" inputmode="none" placeholder="0" autocomplete="off">
+    <div id="res"></div>
+    <div class="ans">Ans : <span id="ansv">0.00</span></div>
+    <div class="pad" id="pad"></div>
+  </div>
+
+  <div class="pane card" id="kon">
+    <label>Kategori</label>
+    <select id="kat">
+      <option value="0">Panjang</option><option value="1">Berat</option>
+      <option value="2">Waktu</option><option value="3">Suhu</option>
+    </select>
+    <label>Nilai</label>
+    <input class="n" id="nilai" type="number" step="any" inputmode="decimal">
+    <div id="satBox">
+      <label>Satuan Asal</label><select id="asal"></select>
+      <label>Satuan Tujuan</label><select id="tuj"></select>
+    </div>
+    <div id="suhuBox" style="display:none">
+      <label>Konversi</label>
+      <select id="mode">
+        <option value="1">Celsius ke Fahrenheit</option><option value="2">Fahrenheit ke Celsius</option>
+        <option value="3">Celsius ke Kelvin</option><option value="4">Kelvin ke Celsius</option>
+        <option value="5">Fahrenheit ke Kelvin</option><option value="6">Kelvin ke Fahrenheit</option>
+      </select>
+    </div>
+    <button class="btn" id="goKon">Konversi</button>
+    <div id="resK" style="text-align:center;font-size:20px;margin-top:14px"></div>
+  </div>
+
+  <div class="pane card" id="rwy">
+    <div id="hist"></div>
+    <button class="btn g" id="clr">Hapus Riwayat</button>
+  </div>
+
+  <div class="mem">01 Aurel Fitria Rahmadhani · 15 Auri Surya Alam<br>19 Chika A'yunin Rahmawati · 21 David Arya Wijaya<br>22 Davinka Ganza Gifany · 30 M. Zidny Alfan Syammil Haqqi</div>
+</div>
+
+<script>
+var $ = function(id){return document.getElementById(id)};
+var history_ = [], hitung, konversi, getAns, satNama;
+
+var Module = {
+  onRuntimeInitialized: function(){
+    hitung   = Module.cwrap('hitung','string',['string']);
+    konversi = Module.cwrap('konversi','string',['number','number','number','number','number']);
+    getAns   = Module.cwrap('get_ans','number',[]);
+    satNama  = Module.cwrap('satuan_nama','string',['number','number']);
+    isiSatuan();
+  }
+};
+
+// Tab
+document.querySelectorAll('.tabs button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('.tabs button,.pane').forEach(function(e){e.classList.remove('on')});
+    b.classList.add('on'); $(b.dataset.t).classList.add('on');
+    if(b.dataset.t==='rwy') tampilRiwayat();
+  };
+});
+
+// Keypad
+var keys=['(',')','^','√','7','8','9','/','4','5','6','*','1','2','3','-','0','.','Ans','+','C','⌫','',''];
+keys.forEach(function(k){
+  if(!k) return;
+  var b=document.createElement('button'); b.textContent=k;
+  if('+-*/^√'.indexOf(k)>=0) b.className='op';
+  b.onclick=function(){
+    if(k==='C') $('in').value='';
+    else if(k==='⌫') $('in').value=$('in').value.slice(0,-1);
+    else $('in').value+=k;
+  };
+  $('pad').appendChild(b);
+});
+var eq=document.createElement('button'); eq.textContent='='; eq.className='eq'; eq.style.gridColumn='span 2';
+eq.onclick=hit; $('pad').appendChild(eq);
+$('in').addEventListener('keydown',function(e){if(e.key==='Enter')hit()});
+
+function ready(){ if(!hitung){ $('res').innerHTML='<span class="er">Modul C++ (calc.js) belum dimuat</span>'; return false } return true }
+
+function hit(){
+  if(!ready()) return;
+  var ex=$('in').value.trim(); if(!ex) return;
+  var r=hitung(ex);
+  if(r.indexOf('OK:')===0){
+    var v=r.slice(3);
+    $('res').innerHTML='<span class="ok">= '+v+'</span>';
+    history_.push(ex+' = '+v);
+    $('ansv').textContent=getAns().toFixed(2);
+  } else $('res').innerHTML='<span class="er">'+r.slice(4)+'</span>';
+}
+
+// Konversi
+function isiSatuan(){
+  var k=+$('kat').value, a=$('asal'), t=$('tuj'); a.innerHTML=t.innerHTML='';
+  if(k===3){ $('satBox').style.display='none'; $('suhuBox').style.display='block'; return }
+  $('satBox').style.display='block'; $('suhuBox').style.display='none';
+  for(var i=0;i<7;i++){
+    var n=satNama(k,i); if(!n) continue;
+    a.add(new Option(n,i)); t.add(new Option(n,i));
+  }
+  if(t.options.length>1) t.selectedIndex=1;
+}
+$('kat').onchange=function(){ if(satNama) isiSatuan() };
+$('goKon').onclick=function(){
+  if(!konversi){ $('resK').innerHTML='<span class="er">Modul C++ belum dimuat</span>'; return }
+  var v=parseFloat($('nilai').value);
+  if(isNaN(v)){ $('resK').innerHTML='<span class="er">Nilai tidak valid!</span>'; return }
+  var r=konversi(+$('kat').value,+$('asal').value||0,+$('tuj').value||0,v,+$('mode').value);
+  if(r.indexOf('OK:')===0){
+    $('resK').innerHTML='<span class="ok">'+r.slice(3)+'</span>';
+    history_.push('Konversi satuan = '+r.slice(3));
+    $('ansv').textContent=getAns().toFixed(2);
+  } else $('resK').innerHTML='<span class="er">'+r.slice(4)+'</span>';
+};
+
+// Riwayat
+function tampilRiwayat(){
+  $('hist').innerHTML = history_.length
+    ? '<ol>'+history_.map(function(h){return '<li>'+h.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</li>'}).join('')+'</ol>'
+    : '<div class="empty">Belum ada riwayat perhitungan.</div>';
+}
+$('clr').onclick=function(){ history_=[]; tampilRiwayat() };
+</script>
+<script src="calc.js"></script>
+</body>
+</html>
