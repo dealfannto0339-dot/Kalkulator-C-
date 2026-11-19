@@ -1,4 +1,4 @@
-#include "kalk.cpp"
+#include "calc.cpp"
 #include <emscripten.h>
 
 const string SATUAN[3][7] = {
