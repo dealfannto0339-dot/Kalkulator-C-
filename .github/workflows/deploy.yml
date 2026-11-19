@@ -25,11 +25,11 @@ jobs:
       - name: Kompilasi C++ ke WebAssembly
         run: |
           mkdir -p dist
-          emcc web.cpp -O2 -Dmain=main_terminal -o dist/calc.js \
+          em++ web.cpp -O2 -Dmain=main_terminal -o dist/calc.js \
             -sEXPORTED_RUNTIME_METHODS=cwrap \
             -sEXPORTED_FUNCTIONS=_hitung,_konversi,_get_ans,_reset_ans,_satuan_nama,_riwayat_jumlah,_riwayat_ambil,_hapus_riwayat \
             -sSINGLE_FILE=1
-          cp index.html style.css script.js dist/
+          cp index.html dist/
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -44,3 +44,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        
