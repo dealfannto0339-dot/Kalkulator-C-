@@ -1,4 +1,3 @@
-// Logika kalkulator (C++) untuk dikompilasi ke WebAssembly.
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -8,7 +7,7 @@
 using namespace std;
 
 static double ans = 0;
-static string out;  // buffer hasil untuk JS
+static string out; 
 
 static string fmt(double v) {
     ostringstream ss;
@@ -103,7 +102,6 @@ static const double FAKTOR[3][7] = {
 
 extern "C" {
 
-// Mengembalikan "OK:<hasil>" atau "ERR:<pesan>"
 const char* hitung(const char* expr) {
     try {
         Parser p(expr);
@@ -118,8 +116,8 @@ const char* hitung(const char* expr) {
 
 double get_ans() { return ans; }
 
-// kategori 0-2: panjang/berat/waktu (asal, tujuan = indeks 0-6)
-// kategori 3: suhu (mode 1-6)
+void reset_ans() { ans = 0; }
+
 const char* konversi(int kategori, int asal, int tujuan, double nilai, int mode) {
     double hasil = 0;
     string unit;
@@ -154,7 +152,6 @@ const char* konversi(int kategori, int asal, int tujuan, double nilai, int mode)
     return out.c_str();
 }
 
-// Nama satuan untuk mengisi dropdown ("" jika kosong)
 const char* satuan_nama(int kategori, int i) {
     if (kategori < 0 || kategori > 2 || i < 0 || i > 6) return "";
     return SATUAN[kategori][i];
