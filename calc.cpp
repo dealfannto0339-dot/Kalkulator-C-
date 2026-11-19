@@ -115,8 +115,9 @@ const char* hitung(const char* expr) {
 }
 
 double get_ans() { return ans; }
-
-void reset_ans() { ans = 0; }
+void reset_ans() {
+    ans = 0;
+}
 
 const char* konversi(int kategori, int asal, int tujuan, double nilai, int mode) {
     double hasil = 0;
