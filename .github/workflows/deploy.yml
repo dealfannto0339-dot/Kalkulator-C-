@@ -29,7 +29,7 @@ jobs:
             -sEXPORTED_RUNTIME_METHODS=cwrap \
             -sEXPORTED_FUNCTIONS=_hitung,_konversi,_get_ans,_reset_ans,_satuan_nama,_riwayat_jumlah,_riwayat_ambil,_hapus_riwayat \
             -sSINGLE_FILE=1
-          cp -r index.html css js dist/
+          cp index.html style.css script.js dist/
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -44,3 +44,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        
