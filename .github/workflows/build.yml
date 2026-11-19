@@ -1,4 +1,4 @@
-name: Build dan Deploy Kalkulator
+name: Deploy ke GitHub Pages
 
 on:
   push:
@@ -10,23 +10,30 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: mymindstorm/setup-emsdk@v14
-      - name: Compile C++ ke WebAssembly
+
+      - name: Kompilasi C++ ke WebAssembly
         run: |
-          mkdir site
-          em++ calc.cpp -Os -fexceptions -o site/calc.js \
-            -sEXPORTED_FUNCTIONS=_hitung,_konversi,_get_ans,_satuan_nama \
+          mkdir -p dist
+          emcc web.cpp -O2 -Dmain=main_terminal -o dist/calc.js \
             -sEXPORTED_RUNTIME_METHODS=cwrap \
+            -sEXPORTED_FUNCTIONS=_hitung,_konversi,_get_ans,_reset_ans,_satuan_nama,_riwayat_jumlah,_riwayat_ambil,_hapus_riwayat \
             -sSINGLE_FILE=1
-          cp index.html site/
+          cp -r index.html css js dist/
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: dist
 
   deploy:
     needs: build
